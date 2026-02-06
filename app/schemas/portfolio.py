@@ -1,5 +1,4 @@
-import uuid
-from enum import StrEnum
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
@@ -30,7 +29,7 @@ class PortfolioQuestionsResponse(BaseModel):
     qa_item: PortfolioQAItem | None = None
 
 
-class PortfolioSourceType(StrEnum):
+class PortfolioSourceType(str, Enum):
     NOTION = "notion"
     BLOG = "blog"
     PDF = "pdf"
@@ -39,7 +38,6 @@ class PortfolioSourceType(StrEnum):
 class PortfolioResponse(BaseModel):
     id: int
     user_id: int
-    project_id: uuid.UUID | None = None
     source_type: PortfolioSourceType
     source_url: str | None = None
     filename: str | None = None

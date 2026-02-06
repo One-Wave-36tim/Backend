@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -13,11 +11,9 @@ def create_portfolio(
     source_url: str | None,
     original_filename: str | None,
     extracted_text: str = "",
-    project_id: uuid.UUID | None = None,
 ) -> Portfolio:
     portfolio = Portfolio(
         user_id=user_id,
-        project_id=project_id,
         source_type=source_type,
         source_url=source_url,
         original_filename=original_filename,
@@ -34,32 +30,31 @@ def get_portfolio_by_id(db: Session, portfolio_id: int, user_id: int) -> Portfol
     return db.execute(stmt).scalars().first()
 
 
-def find_portfolio_by_id(db: Session, portfolio_id: int, user_id: int) -> Portfolio | None:
-    return get_portfolio_by_id(db=db, portfolio_id=portfolio_id, user_id=user_id)
-
-
 def get_portfolios_by_user(
-    db: Session,
-    user_id: int,
-    limit: int = 50,
-    offset: int = 0,
-    project_id: uuid.UUID | None = None,
+    db: Session, user_id: int, limit: int = 50, offset: int = 0
 ) -> list[Portfolio]:
-    stmt = select(Portfolio).where(Portfolio.user_id == user_id)
-    if project_id is not None:
-        stmt = stmt.where(Portfolio.project_id == project_id)
-    stmt = stmt.order_by(Portfolio.created_at.desc()).limit(limit).offset(offset)
+    stmt = (
+        select(Portfolio)
+        .where(Portfolio.user_id == user_id)
+        .order_by(Portfolio.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     return list(db.execute(stmt).scalars().all())
 
 
-def count_portfolios_by_user(db: Session, user_id: int, project_id: uuid.UUID | None = None) -> int:
+def count_portfolios_by_user(db: Session, user_id: int) -> int:
     stmt = select(func.count(Portfolio.id)).where(Portfolio.user_id == user_id)
-    if project_id is not None:
-        stmt = stmt.where(Portfolio.project_id == project_id)
     return int(db.execute(stmt).scalar_one())
 
 
 def delete_portfolio(db: Session, portfolio_id: int, user_id: int) -> bool:
+    """
+    포트폴리오를 삭제합니다.
+    user_id로 소유권을 확인합니다.
+    Returns:
+        bool: 삭제 성공 여부 (포트폴리오가 존재하고 소유자가 맞으면 True)
+    """
     stmt = select(Portfolio).where(Portfolio.id == portfolio_id, Portfolio.user_id == user_id)
     portfolio = db.execute(stmt).scalars().first()
     if not portfolio:

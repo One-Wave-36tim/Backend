@@ -39,6 +39,5 @@ def analyze_portfolio(db: Session, portfolio_id: int, user_id: int) -> Portfolio
         db=db,
         portfolio_id=portfolio.id,
         analysis_text=analysis_text,
-        project_id=portfolio.project_id,
     )
     return PortfolioAnalysisResponse(portfolio_id=portfolio.id, analysis=analysis_text)
