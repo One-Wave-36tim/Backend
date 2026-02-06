@@ -9,6 +9,8 @@ class ResumeParagraphResponse(BaseModel):
     title: str
     text: str
     charLimit: int
+    status: str | None = None
+    sortOrder: int | None = None
     updatedAt: datetime
 
 
@@ -51,3 +53,12 @@ class ResumeCoachAnswer(BaseModel):
 class ResumeCoachAskResponse(BaseModel):
     coachAnswer: ResumeCoachAnswer
 
+
+class ResumeDraftResponse(BaseModel):
+    projectId: UUID
+    resumeId: UUID
+    title: str
+    status: str
+    completedParagraphs: int
+    totalParagraphs: int
+    paragraphs: list[ResumeParagraphResponse]

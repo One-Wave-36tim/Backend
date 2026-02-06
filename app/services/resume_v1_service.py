@@ -4,19 +4,109 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.db.repositories.resume_repository import (
+    count_completed_paragraphs,
+    count_total_paragraphs,
+    create_paragraph,
+    create_resume,
     complete_paragraph,
     get_paragraph_by_id,
+    get_latest_resume_by_project,
     get_resume_by_id,
+    list_paragraphs_by_resume,
+    update_resume_status,
     update_paragraph_text,
 )
 from app.schemas.resume_v1 import (
     ResumeCoachAnswer,
     ResumeCoachAskRequest,
     ResumeCoachAskResponse,
+    ResumeDraftResponse,
     ResumeParagraphCompleteResponse,
     ResumeParagraphPatchResponse,
     ResumeParagraphResponse,
 )
+
+_DEFAULT_PARAGRAPHS: list[tuple[str, int]] = [
+    ("지원 동기와 직무 적합성", 700),
+    ("프로젝트 문제 해결 경험", 900),
+    ("협업/소통 경험과 성과", 800),
+]
+
+
+def _to_paragraph_response(paragraph) -> ResumeParagraphResponse:
+    return ResumeParagraphResponse(
+        paragraphId=paragraph.id,
+        title=paragraph.title,
+        text=paragraph.text,
+        charLimit=paragraph.char_limit,
+        status=paragraph.status,
+        sortOrder=paragraph.sort_order,
+        updatedAt=paragraph.updated_at,
+    )
+
+
+def get_or_create_resume_draft(
+    db: Session,
+    user_id: int,
+    project_id: uuid.UUID,
+) -> ResumeDraftResponse:
+    resume = get_latest_resume_by_project(db=db, project_id=project_id, user_id=user_id)
+    if resume is None:
+        resume = create_resume(db=db, project_id=project_id, user_id=user_id)
+
+    paragraphs = list_paragraphs_by_resume(
+        db=db,
+        resume_id=resume.id,
+        project_id=project_id,
+        user_id=user_id,
+    )
+    if not paragraphs:
+        for idx, (title, char_limit) in enumerate(_DEFAULT_PARAGRAPHS):
+            create_paragraph(
+                db=db,
+                resume_id=resume.id,
+                project_id=project_id,
+                user_id=user_id,
+                title=title,
+                sort_order=idx + 1,
+                char_limit=char_limit,
+            )
+        paragraphs = list_paragraphs_by_resume(
+            db=db,
+            resume_id=resume.id,
+            project_id=project_id,
+            user_id=user_id,
+        )
+
+    completed = count_completed_paragraphs(db=db, resume_id=resume.id)
+    total = count_total_paragraphs(db=db, resume_id=resume.id)
+    return ResumeDraftResponse(
+        projectId=project_id,
+        resumeId=resume.id,
+        title=resume.title,
+        status=resume.status,
+        completedParagraphs=completed,
+        totalParagraphs=total,
+        paragraphs=[_to_paragraph_response(paragraph) for paragraph in paragraphs],
+    )
+
+
+def list_resume_paragraphs(
+    db: Session,
+    user_id: int,
+    project_id: uuid.UUID,
+    resume_id: uuid.UUID,
+) -> list[ResumeParagraphResponse]:
+    resume = get_resume_by_id(db=db, resume_id=resume_id, project_id=project_id, user_id=user_id)
+    if resume is None:
+        raise NotFoundError("Resume not found")
+    paragraphs = list_paragraphs_by_resume(
+        db=db,
+        resume_id=resume_id,
+        project_id=project_id,
+        user_id=user_id,
+    )
+    return [_to_paragraph_response(paragraph) for paragraph in paragraphs]
 
 
 def get_resume_paragraph(
@@ -38,13 +128,7 @@ def get_resume_paragraph(
     )
     if paragraph is None:
         raise NotFoundError("Paragraph not found")
-    return ResumeParagraphResponse(
-        paragraphId=paragraph.id,
-        title=paragraph.title,
-        text=paragraph.text,
-        charLimit=paragraph.char_limit,
-        updatedAt=paragraph.updated_at,
-    )
+    return _to_paragraph_response(paragraph)
 
 
 def patch_resume_paragraph(
@@ -95,6 +179,10 @@ def complete_resume_paragraph_v1(
     if paragraph is None:
         raise NotFoundError("Paragraph not found")
     paragraph = complete_paragraph(db=db, paragraph=paragraph)
+    completed = count_completed_paragraphs(db=db, resume_id=resume.id)
+    total = count_total_paragraphs(db=db, resume_id=resume.id)
+    if total > 0 and completed >= total:
+        update_resume_status(db=db, resume=resume, status="COMPLETED")
     return ResumeParagraphCompleteResponse(
         paragraphId=paragraph.id,
         status=paragraph.status,
@@ -133,4 +221,3 @@ def ask_resume_coach(
         raise ValueError("noGhostwriting must be true")
     answer = _build_coach_answer(payload.userQuestion, payload.paragraphText)
     return ResumeCoachAskResponse(coachAnswer=answer)
-

@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.schemas.resume_v1 import (
     ResumeCoachAskRequest,
     ResumeCoachAskResponse,
+    ResumeDraftResponse,
     ResumeParagraphCompleteResponse,
     ResumeParagraphPatchRequest,
     ResumeParagraphPatchResponse,
@@ -17,11 +18,56 @@ from app.schemas.resume_v1 import (
 from app.services.resume_v1_service import (
     ask_resume_coach,
     complete_resume_paragraph_v1,
+    get_or_create_resume_draft,
     get_resume_paragraph,
+    list_resume_paragraphs,
     patch_resume_paragraph,
 )
 
 router = APIRouter(prefix="/v1", tags=["자소서"])
+
+
+@router.get(
+    "/projects/{project_id}/resumes/draft",
+    response_model=ResumeDraftResponse,
+    summary="자소서 draft 조회/생성",
+    description=(
+        "프로젝트 기준 최신 자소서를 조회하고 없으면 기본 문단(지원동기/문제해결/협업성과)으로 "
+        "초안을 생성해 반환합니다."
+    ),
+    response_description="자소서 draft + 문단 목록",
+)
+def get_or_create_resume_draft_endpoint(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
+) -> ResumeDraftResponse:
+    return get_or_create_resume_draft(db=db, user_id=user_id, project_id=project_id)
+
+
+@router.get(
+    "/projects/{project_id}/resumes/{resume_id}/paragraphs",
+    response_model=list[ResumeParagraphResponse],
+    summary="자소서 문단 목록 조회",
+    description="해당 자소서의 문단 목록을 sort_order 기준으로 반환합니다.",
+    response_description="문단 목록",
+    responses={404: {"description": "이력서를 찾을 수 없음"}},
+)
+def list_resume_paragraphs_endpoint(
+    project_id: UUID,
+    resume_id: UUID,
+    db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
+) -> list[ResumeParagraphResponse]:
+    try:
+        return list_resume_paragraphs(
+            db=db,
+            user_id=user_id,
+            project_id=project_id,
+            resume_id=resume_id,
+        )
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.get(
@@ -120,4 +166,3 @@ def ask_resume_coach_endpoint(payload: ResumeCoachAskRequest) -> ResumeCoachAskR
         return ask_resume_coach(payload=payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-

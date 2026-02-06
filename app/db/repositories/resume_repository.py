@@ -34,6 +34,67 @@ def get_latest_resume_by_project(
     return db.execute(stmt).scalars().first()
 
 
+def create_resume(
+    db: Session,
+    project_id: uuid.UUID,
+    user_id: int,
+    title: str = "자기소개서",
+) -> Resume:
+    row = Resume(
+        project_id=project_id,
+        user_id=user_id,
+        title=title,
+        status="IN_PROGRESS",
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_paragraphs_by_resume(
+    db: Session,
+    resume_id: uuid.UUID,
+    project_id: uuid.UUID,
+    user_id: int,
+) -> list[ResumeParagraph]:
+    stmt = (
+        select(ResumeParagraph)
+        .where(
+            ResumeParagraph.resume_id == resume_id,
+            ResumeParagraph.project_id == project_id,
+            ResumeParagraph.user_id == user_id,
+        )
+        .order_by(ResumeParagraph.sort_order.asc())
+    )
+    return list(db.execute(stmt).scalars().all())
+
+
+def create_paragraph(
+    db: Session,
+    resume_id: uuid.UUID,
+    project_id: uuid.UUID,
+    user_id: int,
+    title: str,
+    sort_order: int,
+    char_limit: int = 700,
+) -> ResumeParagraph:
+    row = ResumeParagraph(
+        resume_id=resume_id,
+        project_id=project_id,
+        user_id=user_id,
+        title=title,
+        sort_order=sort_order,
+        char_limit=char_limit,
+        text="",
+        status="IN_PROGRESS",
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
 def get_paragraph_by_id(
     db: Session,
     paragraph_id: uuid.UUID,
@@ -66,6 +127,14 @@ def complete_paragraph(db: Session, paragraph: ResumeParagraph) -> ResumeParagra
     return paragraph
 
 
+def update_resume_status(db: Session, resume: Resume, status: str) -> Resume:
+    resume.status = status
+    db.add(resume)
+    db.commit()
+    db.refresh(resume)
+    return resume
+
+
 def count_completed_paragraphs(db: Session, resume_id: uuid.UUID) -> int:
     stmt = select(func.count(ResumeParagraph.id)).where(
         ResumeParagraph.resume_id == resume_id,
@@ -77,4 +146,3 @@ def count_completed_paragraphs(db: Session, resume_id: uuid.UUID) -> int:
 def count_total_paragraphs(db: Session, resume_id: uuid.UUID) -> int:
     stmt = select(func.count(ResumeParagraph.id)).where(ResumeParagraph.resume_id == resume_id)
     return int(db.execute(stmt).scalar_one())
-
