@@ -71,8 +71,8 @@ class RoutineItem(Base):
     )
 
 
-class MyProject(Base):
-    __tablename__ = "my_projects"
+class PortfolioItem(Base):
+    __tablename__ = "portfolio_items"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
@@ -89,12 +89,14 @@ class MyProject(Base):
     )
 
 
-class ProjectMyProject(Base):
-    __tablename__ = "project_my_projects"
+class ProjectPortfolio(Base):
+    __tablename__ = "project_portfolios"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    my_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    portfolio_item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, index=True
+    )
     role_type: Mapped[str] = mapped_column(String(10), nullable=False, default="SUB")
     is_representative: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(

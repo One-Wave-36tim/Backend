@@ -53,8 +53,8 @@ create table if not exists public.routine_items (
 create index if not exists ix_routine_user_date on public.routine_items (user_id, routine_date desc);
 create index if not exists ix_routine_project_date on public.routine_items (project_id, routine_date desc);
 
--- 4) My projects
-create table if not exists public.my_projects (
+-- 4) Portfolio items
+create table if not exists public.portfolio_items (
   id uuid not null default uuid_generate_v4(),
   user_id bigint not null,
   title varchar(200) not null,
@@ -64,25 +64,26 @@ create table if not exists public.my_projects (
   summary text null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint my_projects_pkey primary key (id)
+  constraint portfolio_items_pkey primary key (id)
 );
 
-create index if not exists ix_my_projects_user on public.my_projects (user_id);
+create index if not exists ix_portfolio_items_user on public.portfolio_items (user_id);
 
-create table if not exists public.project_my_projects (
+create table if not exists public.project_portfolios (
   id uuid not null default uuid_generate_v4(),
   project_id uuid not null,
-  my_project_id uuid not null,
+  portfolio_item_id uuid not null,
   role_type varchar(10) not null default 'SUB',
   is_representative boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint project_my_projects_pkey primary key (id)
+  constraint project_portfolios_pkey primary key (id)
 );
 
-create index if not exists ix_pmp_project on public.project_my_projects (project_id);
-create index if not exists ix_pmp_my_project on public.project_my_projects (my_project_id);
-create index if not exists ix_pmp_rep on public.project_my_projects (project_id, is_representative);
+create index if not exists ix_project_portfolios_project on public.project_portfolios (project_id);
+create index if not exists ix_project_portfolios_item on public.project_portfolios (portfolio_item_id);
+create index if not exists ix_project_portfolios_rep
+  on public.project_portfolios (project_id, is_representative);
 
 -- 5) Resume + paragraphs
 create table if not exists public.resumes (

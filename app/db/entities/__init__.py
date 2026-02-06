@@ -1,10 +1,10 @@
 from app.db.entities.portfolio import Portfolio
 from app.db.entities.portfolio_analysis import PortfolioAnalysis
 from app.db.entities.project import (
-    MyProject,
+    PortfolioItem,
     Project,
     ProjectJobPosting,
-    ProjectMyProject,
+    ProjectPortfolio,
     Resume,
     ResumeParagraph,
     RoutineItem,
@@ -14,12 +14,12 @@ from app.db.entities.simulation import SimulationLog, SimulationSession
 from app.db.entities.user import User
 
 __all__ = [
-    "MyProject",
+    "PortfolioItem",
     "Portfolio",
     "PortfolioAnalysis",
     "Project",
     "ProjectJobPosting",
-    "ProjectMyProject",
+    "ProjectPortfolio",
     "Resume",
     "ResumeParagraph",
     "RoutineItem",

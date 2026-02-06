@@ -10,7 +10,7 @@ app = FastAPI(
         {"name": "헬스체크", "description": "서버 상태 확인 API"},
         {"name": "인증", "description": "로그인/회원가입/JWT 발급 API"},
         {"name": "홈", "description": "홈 화면 데이터 API"},
-        {"name": "프로젝트", "description": "프로젝트/대시보드/내 프로젝트 관리 API"},
+        {"name": "프로젝트", "description": "프로젝트/대시보드/포트폴리오 관리 API"},
         {"name": "루틴", "description": "홈 루틴 체크리스트 API"},
         {"name": "자소서", "description": "자소서 문단 작성 및 코치 API"},
         {"name": "심층인터뷰", "description": "심층 인터뷰 진행/가이드/인사이트 API"},
