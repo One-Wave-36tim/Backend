@@ -2,11 +2,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
 ScoreMap = dict[str, int]
 
 
 class SimulationStartRequest(BaseModel):
+    project_id: UUID | None = Field(None, description="지원 프로젝트 ID")
     job_role: str = Field(..., description="지원 직무")
     company_context: str | None = Field(None, description="기업 상황 요약")
     job_description: str | None = Field(None, description="채용 공고 요약")

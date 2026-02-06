@@ -18,7 +18,6 @@ from app.schemas.simulation import (
 )
 from app.services.gemini_client import GeminiClient
 
-
 SYSTEM_PROMPT = """당신은 '악독한 직무 시뮬레이터'입니다.
 사용자가 선택한 직무와 공고를 바탕으로 가장 스트레스 받는 상황을 연출하세요.
 
@@ -38,7 +37,6 @@ response: 사용자에게 보여줄 대사
 score_change: {"logic": -10~10, "mental": -10~10, "responsibility": -10~10, "collaboration": -10~10}
 current_score: 누적 점수(선택)
 """
-
 
 REPORT_PROMPT = """너는 면접/자소서용 리포트를 작성하는 코치다.
 다음 대화 로그와 누적 점수를 바탕으로 리포트를 JSON으로 작성해라.
@@ -85,7 +83,7 @@ def _build_context(session: SimulationSession, logs: list[SimulationLog]) -> str
 def _next_turn_order(db: Session, session_id: UUID) -> int:
     stmt = select(func.max(SimulationLog.turn_order)).where(SimulationLog.session_id == session_id)
     last = db.execute(stmt).scalar()
-    return (last or 0) + 1
+    return int(last or 0) + 1
 
 
 def start_simulation(
@@ -94,6 +92,7 @@ def start_simulation(
     payload: SimulationStartRequest,
 ) -> SimulationStartResponse:
     session = SimulationSession(
+        project_id=payload.project_id,
         user_id=user_id,
         job_role=payload.job_role,
         company_context=payload.company_context,
@@ -123,6 +122,7 @@ def start_simulation(
     session.total_score = total_score
     log = SimulationLog(
         session_id=session.id,
+        project_id=session.project_id,
         turn_order=1,
         sender="ai",
         message=response or "(빈 응답)",
@@ -152,6 +152,7 @@ def chat_simulation(
     user_turn = _next_turn_order(db, session.id)
     user_log = SimulationLog(
         session_id=session.id,
+        project_id=session.project_id,
         turn_order=user_turn,
         sender="user",
         message=payload.message,
@@ -165,7 +166,7 @@ def chat_simulation(
         .order_by(SimulationLog.turn_order.desc())
         .limit(10)
     )
-    logs = list(reversed(db.execute(stmt).scalars().all()))
+    logs = list(reversed(list(db.execute(stmt).scalars().all())))
     context = _build_context(session, logs)
     user_prompt = f"{context}\n\n다음 사용자 메시지에 응답해라:\n{payload.message}"
 
@@ -177,13 +178,15 @@ def chat_simulation(
     score_change = _extract_score(ai_payload, "score_change")
     current_score = _extract_score(ai_payload, "current_score")
 
-    total_score = (
-        current_score if current_score is not None else _merge_scores(session.total_score or {}, score_change)
-    )
+    if current_score is not None:
+        total_score = current_score
+    else:
+        total_score = _merge_scores(session.total_score or {}, score_change)
     session.total_score = total_score
 
     ai_log = SimulationLog(
         session_id=session.id,
+        project_id=session.project_id,
         turn_order=user_turn + 1,
         sender="ai",
         message=response or "(빈 응답)",
@@ -205,7 +208,7 @@ def chat_simulation(
 def analyze_simulation(
     db: Session,
     user_id: int,
-    session_id: SimulationSession.id,
+    session_id: UUID,
 ) -> SimulationAnalyzeResponse:
     session = db.get(SimulationSession, session_id)
     if not session or session.user_id != user_id:
@@ -216,9 +219,11 @@ def analyze_simulation(
         .where(SimulationLog.session_id == session.id)
         .order_by(SimulationLog.turn_order.asc())
     )
-    logs = db.execute(stmt).scalars().all()
+    logs = list(db.execute(stmt).scalars().all())
     context = _build_context(session, logs)
-    user_prompt = f"{context}\n\n누적 점수: {session.total_score or {}}\nJSON으로 리포트를 작성해라."
+    user_prompt = (
+        f"{context}\n\n누적 점수: {session.total_score or {}}\nJSON으로 리포트를 작성해라."
+    )
 
     gemini = GeminiClient()
     report_payload = gemini.generate_json(REPORT_PROMPT, user_prompt)

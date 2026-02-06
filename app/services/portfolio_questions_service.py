@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.repositories.portfolio_analysis_repository import find_latest_portfolio_analysis
+from app.db.repositories.portfolio_repository import get_portfolio_by_id
 from app.schemas.portfolio import (
     PortfolioConversationTurn,
     PortfolioQAItem,
@@ -61,9 +62,14 @@ def build_portfolio_questions_prompt(
 def generate_portfolio_questions(
     db: Session,
     portfolio_id: int,
+    user_id: int,
     qa_conversation: list[PortfolioQAItem],
     stop_requested: bool,
 ) -> PortfolioQuestionsResponse:
+    portfolio = get_portfolio_by_id(db=db, portfolio_id=portfolio_id, user_id=user_id)
+    if not portfolio:
+        raise ValueError("포트폴리오를 찾을 수 없습니다.")
+
     analysis = find_latest_portfolio_analysis(db, portfolio_id)
     if not analysis:
         raise ValueError("포트폴리오 분석 결과가 없습니다.")
@@ -72,32 +78,30 @@ def generate_portfolio_questions(
     if not settings.gemini_api_key:
         raise RuntimeError("GEMINI_API_KEY가 설정되어 있지 않습니다.")
 
-    conversation: list[PortfolioConversationTurn] = []
-    for item in qa_conversation:
-        if item.question:
-            conversation.append(
-                PortfolioConversationTurn(role="assistant", content=item.question)
-            )
-        if item.answer:
-            conversation.append(PortfolioConversationTurn(role="user", content=item.answer))
-
-    prompt = build_portfolio_questions_prompt(
-        analysis.analysis_text,
-        conversation,
-        stop_requested,
-    )
-    model_output = call_gemini(prompt, settings.gemini_model, settings.gemini_api_key)
-
-    model_output = model_output.strip()
-    fenced_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", model_output, re.DOTALL)
-    if fenced_match:
-        model_output = fenced_match.group(1).strip()
     if stop_requested:
         return PortfolioQuestionsResponse(
             portfolio_id=portfolio_id,
             message="대화를 종료할게요.",
             qa_item=None,
         )
+
+    conversation: list[PortfolioConversationTurn] = []
+    for item in qa_conversation:
+        if item.question:
+            conversation.append(PortfolioConversationTurn(role="assistant", content=item.question))
+        if item.answer:
+            conversation.append(PortfolioConversationTurn(role="user", content=item.answer))
+
+    prompt = build_portfolio_questions_prompt(
+        portfolio_summary=analysis.analysis_text,
+        conversation=conversation,
+        stop_requested=stop_requested,
+    )
+    model_output = call_gemini(prompt, settings.gemini_model, settings.gemini_api_key).strip()
+
+    fenced_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", model_output, re.DOTALL)
+    if fenced_match:
+        model_output = fenced_match.group(1).strip()
 
     try:
         data = json.loads(model_output)
@@ -107,9 +111,10 @@ def generate_portfolio_questions(
         question = model_output
         message = None
 
-    qa_item = PortfolioQAItem(question=question)
-    return PortfolioQuestionsResponse(
-        portfolio_id=portfolio_id,
-        message=None,
-        qa_item=qa_item,
-    )
+    if not question and message:
+        return PortfolioQuestionsResponse(
+            portfolio_id=portfolio_id, message=str(message), qa_item=None
+        )
+
+    qa_item = PortfolioQAItem(question=str(question) if question else None)
+    return PortfolioQuestionsResponse(portfolio_id=portfolio_id, message=None, qa_item=qa_item)

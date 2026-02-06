@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.auth import CurrentUserId
 from app.db.session import get_db
 from app.schemas.portfolio import (
     PortfolioQuestionsRequest,
@@ -19,11 +20,13 @@ def questions(
     portfolio_id: int,
     payload: PortfolioQuestionsRequest,
     db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
 ) -> PortfolioQuestionsResponse:
     try:
         return generate_portfolio_questions(
             db=db,
             portfolio_id=portfolio_id,
+            user_id=user_id,
             qa_conversation=payload.qa_conversation,
             stop_requested=payload.stop_requested,
         )

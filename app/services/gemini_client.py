@@ -1,32 +1,34 @@
 import json
-from typing import Any
-
-from google import genai
+from typing import Any, cast
 
 from app.core.config import get_settings
 
 
 def _extract_text(response: Any) -> str:
     if getattr(response, "text", None):
-        return response.text
+        return str(response.text)
+
     candidates = getattr(response, "candidates", None) or []
     if candidates:
         content = getattr(candidates[0], "content", None)
         parts = getattr(content, "parts", None) or []
         if parts and getattr(parts[0], "text", None):
-            return parts[0].text
+            return str(parts[0].text)
+
     raise ValueError("Gemini response did not contain text")
 
 
 def _parse_json(text: str) -> dict[str, Any]:
     try:
-        return json.loads(text)
+        parsed = json.loads(text)
+        return cast(dict[str, Any], parsed)
     except json.JSONDecodeError:
         start = text.find("{")
         end = text.rfind("}")
         if start == -1 or end == -1 or end <= start:
             raise
-        return json.loads(text[start : end + 1])
+        parsed = json.loads(text[start : end + 1])
+        return cast(dict[str, Any], parsed)
 
 
 class GeminiClient:
@@ -34,8 +36,16 @@ class GeminiClient:
         settings = get_settings()
         if not settings.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY is missing")
+
+        try:
+            from google import genai
+        except ModuleNotFoundError as exc:  # pragma: no cover - local env dependency.
+            raise RuntimeError(
+                "google-genai dependency is missing. Install it to use Gemini features."
+            ) from exc
+
         self._client = genai.Client(api_key=settings.gemini_api_key)
-        self._model = settings.gemini_model or "models/gemini-2.5-flash"
+        self._model = settings.gemini_model
 
     def generate_json(self, system_prompt: str, user_prompt: str) -> dict[str, Any]:
         prompt = f"{system_prompt}\n\n{user_prompt}"

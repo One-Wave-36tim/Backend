@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+import app.db.entities as _entities  # noqa: F401
 from app.db.session import Base, get_engine
 from app.router import router
 

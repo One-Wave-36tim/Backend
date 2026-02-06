@@ -27,14 +27,13 @@ class Settings(BaseSettings):
     database_url: str | None = Field(default=None, alias="DATABASE_URL")
 
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
-    gemini_model: str | None = Field(default="models/gemini-2.5-flash", alias="GEMINI_MODEL")
+    gemini_model: str = Field(default="models/gemini-2.5-flash", alias="GEMINI_MODEL")
 
     jwt_secret_key: str = Field(default="dev-secret-change-me", alias="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
-    jwt_access_token_expire_minutes: int = Field(default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
-
-    gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    jwt_access_token_expire_minutes: int = Field(
+        default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
 
 
 @lru_cache

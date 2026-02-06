@@ -1,4 +1,6 @@
-from pydantic import BaseModel, constr, field_validator
+from typing import Annotated
+
+from pydantic import BaseModel, StringConstraints, field_validator
 
 __all__ = [
     "LoginRequest",
@@ -23,11 +25,8 @@ class LoginResponse(BaseModel):
 
 
 class SignupRequest(BaseModel):
-    id: constr(min_length=3, max_length=50)
-    pw: constr(
-        min_length=8,
-        max_length=128,
-    )
+    id: Annotated[str, StringConstraints(min_length=3, max_length=50)]
+    pw: Annotated[str, StringConstraints(min_length=8, max_length=128)]
 
     @field_validator("pw")
     @classmethod

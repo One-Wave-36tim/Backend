@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.repositories.portfolio_analysis_repository import replace_portfolio_analysis
-from app.db.repositories.portfolio_repository import find_portfolio_by_id
+from app.db.repositories.portfolio_repository import get_portfolio_by_id
 from app.schemas.portfolio import PortfolioAnalysisResponse
 from app.services.portfolio_llm_service import call_gemini
 
@@ -21,8 +21,8 @@ def build_portfolio_analysis_prompt(extracted_text: str) -> str:
     )
 
 
-def analyze_portfolio(db: Session, portfolio_id: int) -> PortfolioAnalysisResponse:
-    portfolio = find_portfolio_by_id(db, portfolio_id)
+def analyze_portfolio(db: Session, portfolio_id: int, user_id: int) -> PortfolioAnalysisResponse:
+    portfolio = get_portfolio_by_id(db=db, portfolio_id=portfolio_id, user_id=user_id)
     if not portfolio:
         raise ValueError("포트폴리오를 찾을 수 없습니다.")
     if not portfolio.extracted_text.strip():
@@ -35,5 +35,10 @@ def analyze_portfolio(db: Session, portfolio_id: int) -> PortfolioAnalysisRespon
     prompt = build_portfolio_analysis_prompt(portfolio.extracted_text)
     analysis_text = call_gemini(prompt, settings.gemini_model, settings.gemini_api_key)
 
-    replace_portfolio_analysis(db, portfolio.id, analysis_text)
+    replace_portfolio_analysis(
+        db=db,
+        portfolio_id=portfolio.id,
+        analysis_text=analysis_text,
+        project_id=portfolio.project_id,
+    )
     return PortfolioAnalysisResponse(portfolio_id=portfolio.id, analysis=analysis_text)

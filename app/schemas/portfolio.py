@@ -1,9 +1,11 @@
-from pydantic import BaseModel
-from enum import Enum
+import uuid
+from enum import StrEnum
+
+from pydantic import BaseModel, Field
 
 
 class PortfolioConversationTurn(BaseModel):
-    role: str  # "assistant" or "user"
+    role: str
     content: str
 
 
@@ -18,7 +20,7 @@ class PortfolioAnalysisResponse(BaseModel):
 
 
 class PortfolioQuestionsRequest(BaseModel):
-    qa_conversation: list[PortfolioQAItem] = []
+    qa_conversation: list[PortfolioQAItem] = Field(default_factory=list)
     stop_requested: bool = False
 
 
@@ -28,7 +30,7 @@ class PortfolioQuestionsResponse(BaseModel):
     qa_item: PortfolioQAItem | None = None
 
 
-class PortfolioSourceType(str, Enum):
+class PortfolioSourceType(StrEnum):
     NOTION = "notion"
     BLOG = "blog"
     PDF = "pdf"
@@ -37,6 +39,7 @@ class PortfolioSourceType(str, Enum):
 class PortfolioResponse(BaseModel):
     id: int
     user_id: int
+    project_id: uuid.UUID | None = None
     source_type: PortfolioSourceType
     source_url: str | None = None
     filename: str | None = None

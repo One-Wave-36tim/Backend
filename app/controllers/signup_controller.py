@@ -2,12 +2,14 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.db.session import get_db
 from app.schemas.auth import SignupRequest, SignupResponse
 from app.services.signup_service import SignupService
-from app.db.session import get_db
 
 router = APIRouter(prefix="/signup", tags=["signup"])
 logger = logging.getLogger(__name__)
+
 
 @router.post("/", response_model=SignupResponse)
 def signup(req: SignupRequest, db: Session = Depends(get_db)):
