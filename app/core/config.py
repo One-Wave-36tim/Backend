@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +34,22 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = Field(
         default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
     )
+
+    @field_validator("gemini_api_key", mode="before")
+    @classmethod
+    def _strip_gemini_api_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = str(value).strip()
+        return trimmed or None
+
+    @field_validator("gemini_model", mode="before")
+    @classmethod
+    def _normalize_gemini_model(cls, value: str) -> str:
+        raw = str(value).strip()
+        if raw.startswith("models/"):
+            return raw
+        return f"models/{raw}"
 
 
 @lru_cache

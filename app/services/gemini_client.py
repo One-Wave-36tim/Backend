@@ -1,6 +1,8 @@
 import json
 from typing import Any, cast
 
+import httpx
+
 from app.core.config import get_settings
 
 
@@ -36,29 +38,45 @@ class GeminiClient:
         settings = get_settings()
         if not settings.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY is missing")
-
+        self._api_key = settings.gemini_api_key
+        self._model = settings.gemini_model
+        self._client: Any | None = None
         try:
             from google import genai
-        except ModuleNotFoundError as exc:  # pragma: no cover - local env dependency.
-            raise RuntimeError(
-                "google-genai dependency is missing. Install it to use Gemini features."
-            ) from exc
 
-        self._client = genai.Client(api_key=settings.gemini_api_key)
-        self._model = settings.gemini_model
+            self._client = genai.Client(api_key=self._api_key)
+        except ModuleNotFoundError:
+            self._client = None
+
+    def _generate_with_http(self, prompt: str) -> str:
+        model_name = self._model.split("/", 1)[1] if self._model.startswith("models/") else self._model
+        url = f"https://generativelanguage.googleapis.com/v1/models/{model_name}:generateContent"
+        params = {"key": self._api_key}
+        payload: dict[str, Any] = {"contents": [{"parts": [{"text": prompt}]}]}
+        with httpx.Client(timeout=30) as client:
+            response = client.post(url, params=params, json=payload)
+            response.raise_for_status()
+            data = response.json()
+        try:
+            return str(data["candidates"][0]["content"]["parts"][0]["text"])
+        except (KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError("Gemini HTTP response parse failed") from exc
 
     def generate_json(self, system_prompt: str, user_prompt: str) -> dict[str, Any]:
         prompt = f"{system_prompt}\n\n{user_prompt}"
-        try:
-            response = self._client.models.generate_content(
-                model=self._model,
-                contents=prompt,
-                config={"response_mime_type": "application/json"},
-            )
-        except TypeError:
-            response = self._client.models.generate_content(
-                model=self._model,
-                contents=prompt,
-            )
-        text = _extract_text(response)
+        if self._client is not None:
+            try:
+                response = self._client.models.generate_content(
+                    model=self._model,
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"},
+                )
+            except TypeError:
+                response = self._client.models.generate_content(
+                    model=self._model,
+                    contents=prompt,
+                )
+            text = _extract_text(response)
+        else:
+            text = self._generate_with_http(prompt)
         return _parse_json(text)

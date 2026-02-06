@@ -99,3 +99,68 @@ def update_session(db: Session, session: UnifiedSession) -> UnifiedSession:
     db.commit()
     db.refresh(session)
     return session
+
+
+def list_sessions_by_project_type(
+    db: Session,
+    user_id: int,
+    project_id: uuid.UUID,
+    session_type: str,
+    limit: int = 20,
+) -> list[UnifiedSession]:
+    stmt = (
+        select(UnifiedSession)
+        .where(
+            UnifiedSession.user_id == user_id,
+            UnifiedSession.project_id == project_id,
+            UnifiedSession.session_type == session_type,
+        )
+        .order_by(UnifiedSession.created_at.desc())
+        .limit(limit)
+    )
+    return list(db.execute(stmt).scalars().all())
+
+
+def get_latest_session_by_project_type(
+    db: Session,
+    user_id: int,
+    project_id: uuid.UUID,
+    session_type: str,
+) -> UnifiedSession | None:
+    rows = list_sessions_by_project_type(
+        db=db,
+        user_id=user_id,
+        project_id=project_id,
+        session_type=session_type,
+        limit=1,
+    )
+    return rows[0] if rows else None
+
+
+def count_sessions_by_project_type(
+    db: Session,
+    user_id: int,
+    project_id: uuid.UUID,
+    session_type: str,
+) -> int:
+    stmt = select(func.count(UnifiedSession.id)).where(
+        UnifiedSession.user_id == user_id,
+        UnifiedSession.project_id == project_id,
+        UnifiedSession.session_type == session_type,
+    )
+    return int(db.execute(stmt).scalar_one())
+
+
+def list_sessions_by_user_type(
+    db: Session,
+    user_id: int,
+    session_type: str,
+    limit: int = 20,
+) -> list[UnifiedSession]:
+    stmt = (
+        select(UnifiedSession)
+        .where(UnifiedSession.user_id == user_id, UnifiedSession.session_type == session_type)
+        .order_by(UnifiedSession.created_at.desc())
+        .limit(limit)
+    )
+    return list(db.execute(stmt).scalars().all())

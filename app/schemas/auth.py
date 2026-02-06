@@ -3,6 +3,8 @@ from typing import Annotated
 from pydantic import BaseModel, StringConstraints, field_validator
 
 __all__ = [
+    "DevTokenRequest",
+    "DevTokenResponse",
     "LoginRequest",
     "LoginResponse",
     "SignupRequest",
@@ -22,6 +24,19 @@ class LoginResponse(BaseModel):
     access_token: str | None = None
     token_type: str | None = None
     expires_in: int | None = None
+
+
+class DevTokenRequest(BaseModel):
+    user_id: str
+
+
+class DevTokenResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: str
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
 
 
 class SignupRequest(BaseModel):

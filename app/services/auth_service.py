@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.password import verify_password
 from app.db.repositories.auth_repository import find_user_by_id
-from app.schemas.auth import LoginResponse
+from app.schemas.auth import DevTokenResponse, LoginResponse
 
 try:
     import jwt as pyjwt
@@ -36,6 +36,22 @@ def login_with_id_pw(db: Session, user_id: str, password: str) -> LoginResponse:
     return LoginResponse(
         success=True,
         message="Login success",
+        user_id=user.user_id,
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=expires_in,
+    )
+
+
+def issue_dev_token(db: Session, user_id: str) -> DevTokenResponse:
+    user = find_user_by_id(db=db, user_id=user_id)
+    if user is None:
+        raise ValueError("User not found")
+
+    access_token, expires_in = _create_access_token(user.user_id)
+    return DevTokenResponse(
+        success=True,
+        message="Dev token issued",
         user_id=user.user_id,
         access_token=access_token,
         token_type="bearer",

@@ -7,11 +7,17 @@ from app.db.session import get_db
 from app.schemas.auth import SignupRequest, SignupResponse
 from app.services.signup_service import SignupService
 
-router = APIRouter(prefix="/signup", tags=["signup"])
+router = APIRouter(prefix="/signup", tags=["인증"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", response_model=SignupResponse)
+@router.post(
+    "/",
+    response_model=SignupResponse,
+    summary="회원가입",
+    description="새 사용자 계정을 생성합니다.",
+    response_description="회원가입 결과",
+)
 def signup(req: SignupRequest, db: Session = Depends(get_db)):
     service = SignupService(db)
     try:

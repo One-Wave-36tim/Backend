@@ -14,19 +14,34 @@ from app.schemas.simulation import (
 )
 from app.services.simulation_service import analyze_simulation, chat_simulation, start_simulation
 
-router = APIRouter(prefix="/simulation", tags=["simulation"])
+router = APIRouter(prefix="/simulation", tags=["직무시뮬레이션(레거시)"])
 
 
-@router.post("/start", response_model=SimulationStartResponse)
+@router.post(
+    "/start",
+    response_model=SimulationStartResponse,
+    summary="(레거시) 시뮬레이션 시작",
+    description="기존 클라이언트 호환용 시뮬레이션 시작 API입니다.",
+    response_description="생성된 시뮬레이션 세션",
+)
 def start_simulation_endpoint(
     payload: SimulationStartRequest,
     db: Session = Depends(get_db),
     user_id: int = CurrentUserId,
 ) -> SimulationStartResponse:
-    return start_simulation(db=db, user_id=user_id, payload=payload)
+    try:
+        return start_simulation(db=db, user_id=user_id, payload=payload)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/chat", response_model=SimulationChatResponse)
+@router.post(
+    "/chat",
+    response_model=SimulationChatResponse,
+    summary="(레거시) 시뮬레이션 채팅",
+    description="기존 클라이언트 호환용 시뮬레이션 채팅 API입니다.",
+    response_description="시뮬레이션 응답 데이터",
+)
 def chat_simulation_endpoint(
     payload: SimulationChatRequest,
     db: Session = Depends(get_db),
@@ -38,7 +53,13 @@ def chat_simulation_endpoint(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/analyze", response_model=SimulationAnalyzeResponse)
+@router.post(
+    "/analyze",
+    response_model=SimulationAnalyzeResponse,
+    summary="(레거시) 시뮬레이션 분석",
+    description="기존 클라이언트 호환용 시뮬레이션 분석 API입니다.",
+    response_description="분석 결과 리포트",
+)
 def analyze_simulation_endpoint(
     payload: SimulationAnalyzeRequest,
     db: Session = Depends(get_db),

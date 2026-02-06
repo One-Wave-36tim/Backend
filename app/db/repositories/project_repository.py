@@ -57,6 +57,16 @@ def count_projects_by_user(db: Session, user_id: int) -> int:
     return int(db.execute(stmt).scalar_one())
 
 
+def get_latest_project_by_user(db: Session, user_id: int) -> Project | None:
+    stmt = (
+        select(Project)
+        .where(Project.user_id == user_id)
+        .order_by(Project.created_at.desc())
+        .limit(1)
+    )
+    return db.execute(stmt).scalars().first()
+
+
 def update_project(db: Session, project: Project) -> Project:
     project.last_activity_at = datetime.now(tz=UTC)
     db.add(project)

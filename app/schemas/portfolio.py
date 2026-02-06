@@ -42,6 +42,8 @@ class PortfolioResponse(BaseModel):
     source_url: str | None = None
     filename: str | None = None
     extracted_text: str = ""
+    is_representative: bool = False
+    meta: dict | None = None
 
 
 class PortfolioListResponse(BaseModel):

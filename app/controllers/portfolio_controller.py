@@ -11,10 +11,16 @@ from app.services.portfolio_service import (
     upload_portfolio,
 )
 
-router = APIRouter(prefix="/portfolios", tags=["portfolios"])
+router = APIRouter(prefix="/portfolios", tags=["포트폴리오"])
 
 
-@router.post("/upload", response_model=PortfolioResponse)
+@router.post(
+    "/upload",
+    response_model=PortfolioResponse,
+    summary="포트폴리오 업로드",
+    description="노션/블로그/PDF 소스의 포트폴리오를 업로드하고 project_id에 귀속시킵니다.",
+    response_description="업로드된 포트폴리오 정보",
+)
 async def upload_portfolio_endpoint(
     source_type: str = Form(
         ..., description="포트폴리오 소스 타입", examples=["notion", "blog", "pdf"]
@@ -46,7 +52,13 @@ async def upload_portfolio_endpoint(
     )
 
 
-@router.get("/{portfolio_id}", response_model=PortfolioResponse)
+@router.get(
+    "/{portfolio_id}",
+    response_model=PortfolioResponse,
+    summary="포트폴리오 단건 조회",
+    description="포트폴리오 ID로 단건 데이터를 조회합니다.",
+    response_description="포트폴리오 데이터",
+)
 async def get_portfolio_endpoint(
     portfolio_id: int,
     db: Session = Depends(get_db),
@@ -58,7 +70,13 @@ async def get_portfolio_endpoint(
     return portfolio
 
 
-@router.get("/", response_model=PortfolioListResponse)
+@router.get(
+    "/",
+    response_model=PortfolioListResponse,
+    summary="포트폴리오 목록 조회",
+    description="사용자 포트폴리오 목록을 조회하며 project_id 필터를 지원합니다.",
+    response_description="포트폴리오 목록",
+)
 async def list_portfolios_endpoint(
     limit: int = 50,
     offset: int = 0,
@@ -73,7 +91,12 @@ async def list_portfolios_endpoint(
     )
 
 
-@router.delete("/{portfolio_id}")
+@router.delete(
+    "/{portfolio_id}",
+    summary="포트폴리오 삭제",
+    description="포트폴리오를 삭제합니다.",
+    response_description="삭제 결과",
+)
 async def delete_portfolio_endpoint(
     portfolio_id: int,
     db: Session = Depends(get_db),
