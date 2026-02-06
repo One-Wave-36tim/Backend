@@ -26,6 +26,10 @@ class Settings(BaseSettings):
 
     database_url: str | None = Field(default=None, alias="DATABASE_URL")
 
+    jwt_secret_key: str = Field(default="dev-secret-change-me", alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
+
 
 @lru_cache
 def get_settings() -> Settings:

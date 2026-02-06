@@ -5,7 +5,13 @@ from app.db.entities.user import User
 
 
 def find_user_by_credentials(db: Session, user_id: str, password: str) -> User | None:
-    stmt = select(User).where(User.user_id == user_id, User.password == password)
+    # Backward-compatible wrapper; password check happens in service now.
+    stmt = select(User).where(User.user_id == user_id)
+    return db.execute(stmt).scalars().first()
+
+
+def find_user_by_id(db: Session, user_id: str) -> User | None:
+    stmt = select(User).where(User.user_id == user_id)
     return db.execute(stmt).scalars().first()
 
 
