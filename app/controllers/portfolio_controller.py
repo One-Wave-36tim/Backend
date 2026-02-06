@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.portfolio import PortfolioListResponse, PortfolioResponse, PortfolioSourceType
-from app.services.portfolio_service import get_portfolio, list_portfolios, upload_portfolio
+from app.services.portfolio_service import delete_portfolio, get_portfolio, list_portfolios, upload_portfolio
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 
@@ -61,3 +61,15 @@ async def list_portfolios_endpoint(
 ) -> PortfolioListResponse:
     user_id = 1
     return await list_portfolios(db=db, user_id=user_id, limit=limit, offset=offset)
+
+
+@router.delete("/{portfolio_id}")
+async def delete_portfolio_endpoint(
+    portfolio_id: int,
+    db: Session = Depends(get_db),
+):
+    user_id = 1
+    deleted = await delete_portfolio(db=db, portfolio_id=portfolio_id, user_id=user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+    return {"message": "Portfolio deleted successfully"}

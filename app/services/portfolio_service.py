@@ -110,3 +110,14 @@ async def list_portfolios(
         portfolios=[PortfolioResponse.model_validate(p) for p in portfolios],
         total=total,
     )
+
+
+async def delete_portfolio(db: Session, portfolio_id: int, user_id: int) -> bool:
+    """
+    포트폴리오를 삭제합니다.
+    Returns:
+        bool: 삭제 성공 여부
+    """
+    from app.db.repositories.portfolio_repository import delete_portfolio as delete_portfolio_repo
+    
+    return delete_portfolio_repo(db=db, portfolio_id=portfolio_id, user_id=user_id)

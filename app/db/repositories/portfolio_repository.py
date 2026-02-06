@@ -77,3 +77,19 @@ def update_portfolio_status(
     db.commit()
     db.refresh(portfolio)
     return portfolio
+
+
+def delete_portfolio(db: Session, portfolio_id: int, user_id: int) -> bool:
+    """
+    포트폴리오를 삭제합니다.
+    user_id로 소유권을 확인합니다.
+    Returns:
+        bool: 삭제 성공 여부 (포트폴리오가 존재하고 소유자가 맞으면 True)
+    """
+    stmt = select(Portfolio).where(Portfolio.id == portfolio_id, Portfolio.user_id == user_id)
+    portfolio = db.execute(stmt).scalars().first()
+    if not portfolio:
+        return False
+    db.delete(portfolio)
+    db.commit()
+    return True
