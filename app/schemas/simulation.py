@@ -10,7 +10,6 @@ class SimulationStartRequest(BaseModel):
     job_role: str = Field(..., description="지원 직무")
     company_context: str | None = Field(None, description="기업 상황 요약")
     job_description: str | None = Field(None, description="채용 공고 요약")
-    user_profile: str | None = Field(None, description="MBTI/성향 등 선택 정보")
 
 
 class SimulationStartResponse(BaseModel):
