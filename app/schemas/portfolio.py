@@ -15,6 +15,7 @@ class PortfolioResponse(BaseModel):
     source_type: PortfolioSourceType
     source_url: str | None = None
     filename: str | None = None
+    extracted_text: str = ""
 
 
 class PortfolioListResponse(BaseModel):
