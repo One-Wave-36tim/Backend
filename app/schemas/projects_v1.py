@@ -78,8 +78,8 @@ class DashboardMockInterview(BaseModel):
     sessionCount: int
 
 
-class DashboardMyProjectItem(BaseModel):
-    myProjectId: UUID
+class DashboardPortfolioItem(BaseModel):
+    portfolioId: UUID
     title: str
     techStack: list[str] = Field(default_factory=list)
     period: str | None = None
@@ -97,12 +97,12 @@ class ProjectDashboardResponse(BaseModel):
     prepStage: DashboardPrepStage
     resume: DashboardResume
     mockInterview: DashboardMockInterview
-    myProjects: list[DashboardMyProjectItem]
+    portfolios: list[DashboardPortfolioItem]
     simulation: DashboardSimpleState
     finalFeedback: DashboardSimpleState
 
 
-class MyProjectCreateRequest(BaseModel):
+class PortfolioCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     techStack: list[str] = Field(default_factory=list)
     periodStart: str | None = Field(
@@ -114,17 +114,17 @@ class MyProjectCreateRequest(BaseModel):
     projectId: UUID | None = None
 
 
-class MyProjectCreateResponse(BaseModel):
-    myProjectId: UUID
+class PortfolioCreateResponse(BaseModel):
+    portfolioId: UUID
     linkedProjectId: UUID | None = None
 
 
-class ProjectMyProjectPatchRequest(BaseModel):
+class ProjectPortfolioPatchRequest(BaseModel):
     isRepresentative: bool
 
 
-class ProjectMyProjectPatchResponse(BaseModel):
+class ProjectPortfolioPatchResponse(BaseModel):
     projectId: UUID
-    myProjectId: UUID
+    portfolioId: UUID
     isRepresentative: bool
     updatedAt: datetime

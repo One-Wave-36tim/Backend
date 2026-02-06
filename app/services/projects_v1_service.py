@@ -7,14 +7,14 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.db.repositories.job_posting_repository import create_job_posting
-from app.db.repositories.my_project_repository import (
-    create_my_project,
-    create_project_my_project_link,
-    get_my_project_by_id,
-    list_project_my_projects,
-    set_representative,
-)
 from app.db.repositories.portfolio_repository import create_portfolio, get_portfolios_by_ids
+from app.db.repositories.project_portfolio_repository import (
+    create_portfolio_item,
+    create_project_portfolio_link,
+    get_portfolio_item_by_id,
+    list_project_portfolios,
+    set_representative_portfolio,
+)
 from app.db.repositories.project_repository import create_project, get_project_by_id
 from app.db.repositories.resume_repository import get_latest_resume_by_project
 from app.db.repositories.routine_repository import get_routine_item, update_routine_checked
@@ -24,18 +24,18 @@ from app.db.repositories.session_repository import (
 )
 from app.schemas.projects_v1 import (
     DashboardMockInterview,
-    DashboardMyProjectItem,
+    DashboardPortfolioItem,
     DashboardPrepStage,
     DashboardProjectInfo,
     DashboardResume,
     DashboardSimpleState,
     DashboardStep,
-    MyProjectCreateRequest,
-    MyProjectCreateResponse,
+    PortfolioCreateRequest,
+    PortfolioCreateResponse,
     ProjectCreateV1Request,
     ProjectCreateV1Response,
     ProjectDashboardResponse,
-    ProjectMyProjectPatchResponse,
+    ProjectPortfolioPatchResponse,
     RoutineToggleResponse,
 )
 
@@ -185,12 +185,12 @@ def toggle_routine_item(
     )
 
 
-def create_my_project_v1(
+def create_portfolio_item_v1(
     db: Session,
     user_id: int,
-    payload: MyProjectCreateRequest,
-) -> MyProjectCreateResponse:
-    row = create_my_project(
+    payload: PortfolioCreateRequest,
+) -> PortfolioCreateResponse:
+    row = create_portfolio_item(
         db=db,
         user_id=user_id,
         title=payload.title,
@@ -200,37 +200,41 @@ def create_my_project_v1(
         summary=None,
     )
     if payload.projectId is not None:
-        create_project_my_project_link(
+        create_project_portfolio_link(
             db=db,
             project_id=payload.projectId,
-            my_project_id=row.id,
+            portfolio_item_id=row.id,
         )
-    return MyProjectCreateResponse(myProjectId=row.id, linkedProjectId=payload.projectId)
+    return PortfolioCreateResponse(portfolioId=row.id, linkedProjectId=payload.projectId)
 
 
-def patch_project_my_project(
+def patch_project_portfolio(
     db: Session,
     user_id: int,
     project_id: uuid.UUID,
-    my_project_id: uuid.UUID,
+    portfolio_id: uuid.UUID,
     is_representative: bool,
-) -> ProjectMyProjectPatchResponse:
+) -> ProjectPortfolioPatchResponse:
     project = get_project_by_id(db=db, project_id=project_id, user_id=user_id)
     if project is None:
         raise NotFoundError("Project not found")
-    my_project = get_my_project_by_id(db=db, user_id=user_id, my_project_id=my_project_id)
-    if my_project is None:
-        raise NotFoundError("My project not found")
+    portfolio_item = get_portfolio_item_by_id(
+        db=db,
+        user_id=user_id,
+        portfolio_item_id=portfolio_id,
+    )
+    if portfolio_item is None:
+        raise NotFoundError("Portfolio not found")
 
-    row = set_representative(
+    row = set_representative_portfolio(
         db=db,
         project_id=project_id,
-        my_project_id=my_project_id,
+        portfolio_item_id=portfolio_id,
         is_representative=is_representative,
     )
-    return ProjectMyProjectPatchResponse(
+    return ProjectPortfolioPatchResponse(
         projectId=project_id,
-        myProjectId=my_project_id,
+        portfolioId=portfolio_id,
         isRepresentative=row.is_representative,
         updatedAt=row.updated_at,
     )
@@ -264,7 +268,7 @@ def get_project_dashboard(
         project_id=project.id,
         session_type="JOB_SIMULATION",
     )
-    project_rows = list_project_my_projects(db=db, project_id=project.id, user_id=user_id)
+    project_rows = list_project_portfolios(db=db, project_id=project.id, user_id=user_id)
 
     resume_completed = bool(resume and resume.status == "COMPLETED")
     mock_completed = bool(latest_mock and latest_mock.status == "COMPLETED")
@@ -306,16 +310,16 @@ def get_project_dashboard(
             latestScore=_extract_mock_score(latest_mock.result_json if latest_mock else None),
             sessionCount=mock_count,
         ),
-        myProjects=[
-            DashboardMyProjectItem(
-                myProjectId=my_project.id,
-                title=my_project.title,
-                techStack=my_project.tech_stack or [],
-                period=_format_period(my_project.period_start, my_project.period_end),
+        portfolios=[
+            DashboardPortfolioItem(
+                portfolioId=portfolio_item.id,
+                title=portfolio_item.title,
+                techStack=portfolio_item.tech_stack or [],
+                period=_format_period(portfolio_item.period_start, portfolio_item.period_end),
                 roleType=link.role_type,
                 isRepresentative=link.is_representative,
             )
-            for link, my_project in project_rows
+            for link, portfolio_item in project_rows
         ],
         simulation=DashboardSimpleState(
             available=True,

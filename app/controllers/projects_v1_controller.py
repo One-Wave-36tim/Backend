@@ -7,22 +7,22 @@ from app.core.auth import CurrentUserId
 from app.core.errors import NotFoundError
 from app.db.session import get_db
 from app.schemas.projects_v1 import (
-    MyProjectCreateRequest,
-    MyProjectCreateResponse,
+    PortfolioCreateRequest,
+    PortfolioCreateResponse,
     ProjectCreateV1Request,
     ProjectCreateV1Response,
     ProjectDashboardResponse,
-    ProjectMyProjectPatchRequest,
-    ProjectMyProjectPatchResponse,
+    ProjectPortfolioPatchRequest,
+    ProjectPortfolioPatchResponse,
     RoutineToggleRequest,
     RoutineToggleResponse,
 )
 from app.services.portfolio_crawl_service import crawl_blog_portfolios_background
 from app.services.projects_v1_service import (
-    create_my_project_v1,
+    create_portfolio_item_v1,
     create_project_v1,
     get_project_dashboard,
-    patch_project_my_project,
+    patch_project_portfolio,
     pick_blog_portfolio_ids,
     toggle_routine_item,
 )
@@ -84,44 +84,44 @@ def get_project_dashboard_endpoint(
 
 
 @router.post(
-    "/my-projects",
-    response_model=MyProjectCreateResponse,
-    summary="내 프로젝트 추가",
-    description="사용자가 수행한 프로젝트 이력을 저장합니다. period는 YYYY-MM 형식입니다.",
-    response_description="생성된 내 프로젝트 ID",
+    "/portfolios",
+    response_model=PortfolioCreateResponse,
+    summary="포트폴리오 추가",
+    description="사용자가 수행한 포트폴리오 이력을 저장합니다. period는 YYYY-MM 형식입니다.",
+    response_description="생성된 포트폴리오 ID",
 )
-def create_my_project_endpoint(
-    payload: MyProjectCreateRequest,
+def create_portfolio_endpoint(
+    payload: PortfolioCreateRequest,
     db: Session = Depends(get_db),
     user_id: int = CurrentUserId,
-) -> MyProjectCreateResponse:
+) -> PortfolioCreateResponse:
     try:
-        return create_my_project_v1(db=db, user_id=user_id, payload=payload)
+        return create_portfolio_item_v1(db=db, user_id=user_id, payload=payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.patch(
-    "/projects/{project_id}/my-projects/{my_project_id}",
-    response_model=ProjectMyProjectPatchResponse,
-    summary="대표 프로젝트 설정",
-    description="프로젝트에 연결된 내 프로젝트의 대표 여부를 변경합니다.",
+    "/projects/{project_id}/portfolios/{portfolio_id}",
+    response_model=ProjectPortfolioPatchResponse,
+    summary="대표 포트폴리오 설정",
+    description="프로젝트에 연결된 포트폴리오의 대표 여부를 변경합니다.",
     response_description="대표 설정 변경 결과",
-    responses={404: {"description": "프로젝트 또는 내 프로젝트를 찾을 수 없음"}},
+    responses={404: {"description": "프로젝트 또는 포트폴리오를 찾을 수 없음"}},
 )
-def patch_project_my_project_endpoint(
+def patch_project_portfolio_endpoint(
     project_id: UUID,
-    my_project_id: UUID,
-    payload: ProjectMyProjectPatchRequest,
+    portfolio_id: UUID,
+    payload: ProjectPortfolioPatchRequest,
     db: Session = Depends(get_db),
     user_id: int = CurrentUserId,
-) -> ProjectMyProjectPatchResponse:
+) -> ProjectPortfolioPatchResponse:
     try:
-        return patch_project_my_project(
+        return patch_project_portfolio(
             db=db,
             user_id=user_id,
             project_id=project_id,
-            my_project_id=my_project_id,
+            portfolio_id=portfolio_id,
             is_representative=payload.isRepresentative,
         )
     except NotFoundError as exc:

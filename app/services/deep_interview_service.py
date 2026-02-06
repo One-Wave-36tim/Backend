@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.db.repositories.job_posting_repository import get_latest_job_posting_by_project
-from app.db.repositories.my_project_repository import list_project_my_projects
 from app.db.repositories.portfolio_repository import get_portfolios_by_user
+from app.db.repositories.project_portfolio_repository import list_project_portfolios
 from app.db.repositories.project_repository import get_project_by_id
 from app.db.repositories.session_repository import (
     create_session,
@@ -91,7 +91,7 @@ def _build_context(
 ) -> str:
     project = get_project_by_id(db=db, project_id=project_id, user_id=user_id)
     posting = get_latest_job_posting_by_project(db=db, project_id=project_id, user_id=user_id)
-    links = list_project_my_projects(db=db, project_id=project_id, user_id=user_id)
+    links = list_project_portfolios(db=db, project_id=project_id, user_id=user_id)
     portfolios = get_portfolios_by_user(
         db=db,
         user_id=user_id,
@@ -104,11 +104,11 @@ def _build_context(
         f"지원 회사: {project.company_name if project else '미지정'}",
         f"지원 직무: {project.role_title if project else '미지정'}",
         f"공고 텍스트 일부: {(posting.text[:500] if posting and posting.text else '없음')}",
-        "연결된 프로젝트 이력:",
+        "연결된 포트폴리오 이력:",
     ]
-    for link, my_project in links[:5]:
+    for link, portfolio_item in links[:5]:
         lines.append(
-            f"- {my_project.title} / role={link.role_type} / rep={link.is_representative}"
+            f"- {portfolio_item.title} / role={link.role_type} / rep={link.is_representative}"
         )
     lines.append("프로젝트 귀속 포트폴리오:")
     for portfolio in portfolios:

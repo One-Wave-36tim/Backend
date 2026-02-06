@@ -18,7 +18,14 @@ _session_local: sessionmaker[Session] | None = None
 
 def _resolve_database_url() -> str:
     if settings.database_url and "<db_user>" not in settings.database_url:
-        return settings.database_url
+        url = settings.database_url.strip()
+        if url.startswith("postgresql+psycopg2://"):
+            return url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+psycopg://", 1)
+        if url.startswith("postgres://"):
+            return url.replace("postgres://", "postgresql+psycopg://", 1)
+        return url
 
     if (
         settings.supabase_db_host

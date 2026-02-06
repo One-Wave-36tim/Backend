@@ -21,7 +21,10 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     if _pwd_context is not None:
-        return cast(bool, _pwd_context.verify(password, hashed_password))
+        try:
+            return cast(bool, _pwd_context.verify(password, hashed_password))
+        except Exception:
+            return False
     if not hashed_password.startswith("sha256$"):
         return False
     digest = hashlib.sha256(password.encode("utf-8")).hexdigest()
