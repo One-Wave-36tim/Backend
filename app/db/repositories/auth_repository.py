@@ -7,3 +7,18 @@ from app.db.entities.user import User
 def find_user_by_credentials(db: Session, user_id: str, password: str) -> User | None:
     stmt = select(User).where(User.user_id == user_id, User.password == password)
     return db.execute(stmt).scalars().first()
+
+
+class SignupRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def find_by_user_id(self, user_id: str) -> User | None:
+        stmt = select(User).where(User.user_id == user_id)
+        return self.db.execute(stmt).scalars().first()
+
+    def create_user(self, user: User) -> User:
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
