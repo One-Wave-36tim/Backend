@@ -49,7 +49,10 @@ class GeminiClient:
             self._client = None
 
     def _generate_with_http(self, prompt: str) -> str:
-        model_name = self._model.split("/", 1)[1] if self._model.startswith("models/") else self._model
+        if self._model.startswith("models/"):
+            model_name = self._model.split("/", 1)[1]
+        else:
+            model_name = self._model
         url = f"https://generativelanguage.googleapis.com/v1/models/{model_name}:generateContent"
         params = {"key": self._api_key}
         payload: dict[str, Any] = {"contents": [{"parts": [{"text": prompt}]}]}
