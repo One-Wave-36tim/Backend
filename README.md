@@ -1,200 +1,80 @@
-# Backend (FastAPI + uv)
+# Pro-Logue
+### 커리어라는 본편이 시작되기 전, 나만의 프롤로그를 쓰다
+**검증되지 않은 취준을 끝내는 AI 기반 실전 커리어 리플렉션 플랫폼**
 
-이 프로젝트는 **uv**(파이썬 패키지/가상환경/실행 관리) + **FastAPI** 기반 백엔드 템플릿이야.
 
----
+<br>
 
-## 1) uv 사용법 (필수 커맨드)
+## 🔍 프로젝트 소개
 
-### 설치 (처음 1회)
-- uv: https://astral.sh/uv
+Pro-logue는 극심한 취업난 속에서  
+“이 정도 준비로 괜찮은가?”, “내 경험은 실제로 통할까?”라는 질문에 답하지 못한 채  
+불안한 준비를 반복하는 취준생의 현실에서 출발했습니다.
 
-### 의존성 설치/동기화
-```bash
-uv sync
-```
-- `pyproject.toml` 기준으로 venv(`.venv`) 만들고, `uv.lock`에 잠긴 버전대로 설치해.
+준비는 충분하다고 느끼지만,  
+그 준비가 **실제로 검증된 적은 없는 상태**로 면접과 직무에 진입하는 구조적 문제에 주목합니다.
 
-### "uv 활성화"(가상환경 들어가기) — macOS / Windows
+Pro-logue는 자소서를 대신 써주지 않는 **AI 기반 실전 검증 플랫폼**입니다.  
+대신 사용자가 자신의 경험을 **검증 · 전략 · 실전**의 관점에서 반복적으로 점검하며,  
+면접과 직무 현장에서 **스스로 말하고 판단할 수 있는 사람**이 되도록 돕습니다.
 
-uv는 보통 `uv run ...`으로 실행하면 **자동으로 .venv를 사용**해서, 굳이 activate 안 해도 돼.
-그래도 터미널에서 `python`, `pip`을 직접 치고 싶으면 아래처럼 활성화하면 됨.
 
-#### macOS / Linux (zsh, bash)
-```bash
-# 프로젝트 루트에서
-source .venv/bin/activate
+<br>
 
-# 해제
-deactivate
-```
+## 📌 주요 기능
 
-#### Windows (PowerShell)
-```powershell
-# 프로젝트 루트에서
-.\.venv\Scripts\Activate.ps1
+* **경험 검증 리플렉션**  
+  포트폴리오·노션·블로그·PDF를 기반으로 AI가 *답*이 아닌 *질문*을 던집니다.
 
-# 해제
-deactivate
-```
+* **전략형 유도 질문 생성**  
+  Why / How / Conflict 질문을 통해 경험의 판단 근거와 선택 이유를 드러냅니다.
 
-#### Windows (cmd)
-```bat
-:: 프로젝트 루트에서
-.venv\Scripts\activate.bat
-```
+* **AI 모의 면접 (STT 기반)**  
+  말의 속도, 침묵, 반복어 등 정량 지표로 실전 말하기 능력 피드백 제공.
 
-> 참고: Windows PowerShell에서 스크립트 실행이 막히면(ExecutionPolicy) 아래 중 하나가 필요할 수 있음.
-> - PowerShell을 관리자 권한으로 열고: `Set-ExecutionPolicy RemoteSigned`
-> - 또는 현재 세션만: `Set-ExecutionPolicy -Scope Process Bypass`
+* **직무 고통 시뮬레이션**  
+  직무별 최악의 상황을 제시해 감정·판단·대응 전략을 검증합니다.
 
-### 서버 실행 (개발)
-```bash
-uv run uvicorn app.main:app --reload
-```
 
-### 코드 품질
-```bash
-uv run ruff check .
-uv run mypy .
-uv run pytest -q
-```
+<br>
 
----
+## 🛠 기술 구현
 
-## 2) 추천 폴더 구조(컨트롤러/서비스/스키마/레포지토리)
+### 기술 스택
 
-너가 말한 컨벤션으로 확정:
-- **Router 폴더는 안 둠**
-- **Controller = HTTP 레이어(엔드포인트 정의)**
-- **Service = 비즈니스 로직**
-- **Controller는 최대한 얇게(thin)**
+#### Backend
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-333333?style=for-the-badge&logo=uvicorn&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
-권장 트리(현재 적용된 형태):
+#### Frontend
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 
-```text
-Backend/
-  app/
-    main.py                  # FastAPI 앱 생성
-    router.py                # 컨트롤러(router)들 한 곳에서 include
 
-    core/
-      errors.py              # 공통 에러/예외
-      config.py              # (나중에) 환경변수/설정
+### 기능 구현 및 기술 포인트
 
-    controllers/             # "라우터" 대신 여기서 endpoint 정의(HTTP 레이어)
-      health_controller.py   # GET /health
-      auth_controller.py     # POST /auth/login ...
+#### 1️⃣ 포트폴리오 분석
 
-    schemas/                 # Pydantic request/response 모델
-      health.py
-      auth.py
+사용자가 업로드한 포트폴리오 텍스트를 기반으로, FastAPI + SQLAlchemy로 저장된 데이터를 읽어 Gemini API 프롬프트를 구성하여 분석합니다.
+분석 결과는 핵심 요약, 강점, 논리적 공백, 추가 질문 포인트 형태로 생성되며, 이후 질문 생성 단계에서 재활용할 수 있도록 DB에 저장됩니다.
 
-    services/                # 비즈니스 로직(유즈케이스)
-      health_service.py
-      auth_service.py
+#### 2️⃣ 전략형 유도 질문
 
-    db/                      # DB 붙일 때 확장할 영역
-      entities/              # ORM 엔티티(테이블 모델)
-        user.py
-      repositories/          # DB 접근 코드(쿼리/CRUD)
-        auth_repository.py
-      session.py             # DB 세션/DI(get_db)
+포트폴리오 분석 결과와 사용자의 Q/A 히스토리를 결합해 프롬프트를 구성하고, Gemini API로부터 1회 1질문 형태의 응답을 받습니다.
+질문은 대화 흐름을 반영해 꼬리질문이나 새로운 관점으로 확장되며, 사용자가 종료를 요청하면 종료 문구만 반환되도록 설계했습니다.
 
-  tests/
-    test_health.py
+#### 3️⃣ 포트폴리오 업로드/관리
 
-  pyproject.toml
-  uv.lock
-```
+Notion, 블로그, PDF 등 다양한 소스 타입을 구분해 검증하고, 업로드된 정보를 Pydantic 모델로 관리합니다.
+업로드된 포트폴리오는 SQLAlchemy 기반 DB 저장으로 유지되며, 조회·목록·삭제까지 일관된 흐름으로 처리됩니다.
 
----
+#### 4️⃣ 직무 시뮬레이션
 
-## 3) 역할 분리: 어디에 “로직”을 두는 게 좋은가?
-
-이번 프로젝트 컨벤션(추천):
-- **Controller(컨트롤러)**: HTTP endpoint 정의. 최대한 얇게.
-- **Service(서비스)**: 비즈니스 로직(유즈케이스). 대부분의 로직은 여기.
-- **Schema(스키마)**: request/response 계약(Pydantic).
-- **Repository(레포지토리)**: (DB 붙일 때) 데이터 접근.
-
-### (1) Controller (컨트롤러) = Router 역할
-- 책임: **HTTP 레이어**
-  - path/method 정의 (`GET /users/{id}`)
-  - request parsing/validation(스키마로)
-  - dependency 주입(auth, db session 등)
-  - response status code/headers
-- 규칙: **얇게(thin)**
-  - 컨트롤러는 “흐름을 연결”만 하고, 판단/연산은 서비스로 넘김.
-
-### (2) Service (서비스)
-- 책임: **유즈케이스(업무 로직)**
-  - 예: “회원가입”, “로그인”, “프로필 수정”
-  - 여러 repo 호출 조합, 권한 체크, 정책 적용
-- 장점: HTTP/DB 변경에도 중심 로직이 덜 흔들림
-
-### (3) Schema (스키마)
-- 책임: **입출력 계약(Contract)**
-  - Request/Response 모델(Pydantic)
-  - validation 규칙(필드 타입/범위/regex 등)
-- 예: `UserCreateRequest`, `UserResponse`
-
-### (4) Repository (레포지토리)
-- 책임: **데이터 접근(영속성)**
-  - DB 붙었을 때: SQLAlchemy/SQLModel/Raw SQL 등으로 CRUD
-
-중요한 포인트(추천):
-- **Repository 안에 Pydantic Schema를 “영구적으로” 묶어두는 건 보통 비추**
-  - 스키마는 API 계약, repo는 데이터 접근이라 경계가 달라.
-  - repo는 보통 ORM 모델/도메인 엔티티를 다루고,
-  - 서비스에서 schema ↔ entity 변환을 담당하는 편이 유지보수에 좋아.
-
-해커톤 단순화(허용):
-- repo에서 dict/row를 바로 schema로 만들어 반환하는 것도 가능
-- 대신 나중에 규모 커지면 리팩터링 포인트가 될 수 있음
-
----
-
-## 4) 요청 → 처리 흐름 예시
-
-예: `POST /users` (회원 생성)
-
-1. `routers/users.py`
-   - `UserCreateRequest`로 body 검증
-   - `user_controller.create_user(req)` 호출
-
-2. `controllers/user_controller.py`
-   - 정책/중복체크/비즈니스 로직
-   - (DB 붙으면) `user_repo.create(...)` 호출
-
-3. `repositories/user_repo.py`
-   - DB insert/select
-   - 결과 반환
-
-4. `controllers`에서 `UserResponse` 형태로 가공
-
-5. `routers`가 response 반환
-
----
-
-## 5) 지금 당장 실행
-```bash
-uv sync
-uv run uvicorn app.main:app --reload
-```
-- Health: http://127.0.0.1:8000/health
-- Docs: http://127.0.0.1:8000/docs
-
----
-
-## 확인하고 싶은 것(모호한 부분 질문)
-DB는 나중에 붙인다고 했으니, 구조 컨벤션만 먼저 확정하면 돼.
-
-1) 너희 팀은 `controllers`로 갈까 `services`로 갈까? (둘 다 가능)
-2) “라우터에 로직”을 얼마나 허용할지: 
-   - A) 라우터는 최대한 얇게(권장)
-   - B) 해커톤이라 라우터에 로직 꽤 넣고, repo는 나중에만
-3) response 형태는 공통 포맷으로 감쌀까?
-   - 예: `{ "success": true, "data": ... }` 같은 래핑
-
-이 3개만 답 주면, 그 컨벤션에 맞춰서 **실제 파일/폴더까지 자동으로 생성**해줄게.
+직무와 공고 맥락을 기반으로 Gemini API를 호출해 “다급한 팀장 / 화난 고객 / 협력사” 등의 페르소나 대화를 생성합니다.
+응답에 따라 논리성, 책임감, 멘탈, 협업 점수를 누적하며, 세션과 대화 로그는 SQLAlchemy로 저장됩니다.
+마지막에는 대화 로그와 누적 점수를 기반으로 유형, 레이더 점수, 베스트/워스트 순간, 요약, 자소서 문구 형태의 리포트를 제공합니다.
