@@ -33,7 +33,14 @@ class Portfolio(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     source_type: Mapped[PortfolioSourceType] = mapped_column(
-        SAEnum(PortfolioSourceType, name="portfolio_source_type"), nullable=False
+        SAEnum(
+            PortfolioSourceType,
+            name="portfolio_source_type",
+            native_enum=False,
+            create_constraint=True,
+            values_callable=lambda x: [e.value for e in PortfolioSourceType],
+        ),
+        nullable=False,
     )
     source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     original_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
