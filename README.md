@@ -88,12 +88,45 @@ assets/
 ### 2️⃣ 전략형 유도 질문
 포트폴리오 분석 결과와 사용자의 Q/A 히스토리를 결합해 프롬프트를 구성하고, Gemini API로부터 1회 1질문 형태의 응답을 받습니다.  
 질문은 대화 흐름을 반영해 꼬리질문이나 새로운 관점으로 확장되며, 사용자가 종료를 요청하면 종료 문구만 반환되도록 설계했습니다.
+- 발생한 문제: 분석 결과가 없을 때 질문 생성 실패
+- 해결: 분석 결과 존재 여부를 먼저 확인하고 없으면 안내 메시지 반환
 
 ### 3️⃣ 포트폴리오 업로드/관리
 Notion, 블로그, PDF 등 다양한 소스 타입을 구분해 검증하고, 업로드된 정보를 Pydantic 모델로 관리합니다.  
 업로드된 포트폴리오는 SQLAlchemy 기반 DB 저장으로 유지되며, 조회·목록·삭제까지 일관된 흐름으로 처리됩니다.
+- 문제: 스키마/엔티티 불일치로 필드 접근 오류
+- 해결: 응답 스키마에서 불필요한 필드 제거 후 일관성 유지
 
 ### 4️⃣ 직무 시뮬레이션
 직무와 공고 맥락을 기반으로 Gemini API를 호출해 “다급한 팀장 / 화난 고객 / 협력사” 등의 페르소나 대화를 생성합니다.  
 응답에 따라 논리성, 책임감, 멘탈, 협업 점수를 누적하며, 세션과 대화 로그는 SQLAlchemy로 저장됩니다.  
 마지막에는 대화 로그와 누적 점수를 기반으로 유형, 레이더 점수, 베스트/워스트 순간, 요약, 자소서 문구 형태의 리포트를 제공합니다.
+- 문제: 세션 로그 누적 중 사용자/AI 턴 순서 꼬임
+- 해결: turn_order를 DB에서 최대값 기준으로 계산해 안정적으로 증가 처리
+
+<br>
+
+## 📸 화면 미리보기
+
+<table>
+  <tr>
+    <td align="center"><img src="image/메인화면.png" width="320" /><br/>메인화면</td>
+    <td align="center"><img src="image/마이페이지.png" width="320" /><br/>마이페이지</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image/프로젝트%20심층%20인터뷰.png" width="320" /><br/>프로젝트 심층 인터뷰</td>
+    <td align="center"><img src="image/자소서%20작성.png" width="320" /><br/>자소서 작성</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image/직무시뮬레이션%20챗봇.png" width="320" /><br/>직무 시뮬레이션 챗봇</td>
+    <td align="center"><img src="image/직무%20시뮬레이션%20결과.png" width="320" /><br/>직무 시뮬레이션 결과</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image/모의%20면접%20진행.png" width="320" /><br/>모의 면접 진행</td>
+    <td align="center"><img src="image/모의면접%20결과.png" width="320" /><br/>모의 면접 결과</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image/최종피드백%20결과.png" width="320" /><br/>최종 피드백 결과</td>
+    <td></td>
+  </tr>
+</table>
