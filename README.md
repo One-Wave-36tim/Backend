@@ -133,3 +133,36 @@ Notion, 블로그, PDF 등 다양한 소스 타입을 구분해 검증하고, �
     <td></td>
   </tr>
 </table>
+
+## 🙋🏻‍♀️ Members
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center">
+        <a href="https://github.com/mimo626">
+          <img src="https://avatars.githubusercontent.com/mimo626" width="100px;" alt="강민주"/>
+          <br /><sub><b>강민주</b></sub>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/zzmnxn">
+          <img src="https://avatars.githubusercontent.com/zzmnxn" width="100px;" alt="박지민"/>
+          <br /><sub><b>박지민</b></sub>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/knox-glorang">
+          <img src="https://avatars.githubusercontent.com/knox-glorang" width="100px;" alt="홍기현"/>
+          <br /><sub><b>홍기현</b></sub>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/yerriiniii">
+          <img src="https://avatars.githubusercontent.com/yerriiniii" width="100px;" alt="박예린"/>
+          <br /><sub><b>박예린</b></sub>
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
