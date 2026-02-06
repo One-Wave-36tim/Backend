@@ -1,12 +1,11 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 
 
 class UserSettingsCreate(BaseModel):
-    notion_api_key: str = Field(..., min_length=1)
+    notion_api_key: str
 
 
 class UserSettingsResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+    success: bool
     user_id: int
-    notion_api_key: str | None
+    notion_api_key: str

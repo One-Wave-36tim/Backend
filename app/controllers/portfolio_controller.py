@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.auth import CurrentUserId
 from app.db.session import get_db
 from app.schemas.portfolio import PortfolioListResponse, PortfolioResponse, PortfolioSourceType
 from app.services.portfolio_service import delete_portfolio, get_portfolio, list_portfolios, upload_portfolio
@@ -16,10 +17,8 @@ async def upload_portfolio_endpoint(
     source_url: str | None = Form(None, description="노션/블로그 URL (notion/blog인 경우 필수)"),
     pdf_file: UploadFile | None = File(None, description="PDF 파일 (pdf인 경우 필수)"),
     db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
 ) -> PortfolioResponse:
-    user_id = 1
-    
-    # 문자열을 소문자로 변환한 후 enum으로 변환
     try:
         source_type_enum = PortfolioSourceType(source_type.lower())
     except ValueError as exc:
@@ -31,7 +30,7 @@ async def upload_portfolio_endpoint(
         raise HTTPException(status_code=400, detail="source_url is required for notion/blog")
     if source_type_enum == PortfolioSourceType.PDF and not pdf_file:
         raise HTTPException(status_code=400, detail="PDF file is required")
-    
+
     return await upload_portfolio(
         db=db,
         user_id=user_id,
@@ -45,8 +44,8 @@ async def upload_portfolio_endpoint(
 async def get_portfolio_endpoint(
     portfolio_id: int,
     db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
 ) -> PortfolioResponse:
-    user_id = 1
     portfolio = await get_portfolio(db=db, portfolio_id=portfolio_id, user_id=user_id)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
@@ -58,8 +57,8 @@ async def list_portfolios_endpoint(
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
 ) -> PortfolioListResponse:
-    user_id = 1
     return await list_portfolios(db=db, user_id=user_id, limit=limit, offset=offset)
 
 
@@ -67,8 +66,8 @@ async def list_portfolios_endpoint(
 async def delete_portfolio_endpoint(
     portfolio_id: int,
     db: Session = Depends(get_db),
+    user_id: int = CurrentUserId,
 ):
-    user_id = 1
     deleted = await delete_portfolio(db=db, portfolio_id=portfolio_id, user_id=user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Portfolio not found")

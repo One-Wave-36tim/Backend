@@ -1,7 +1,6 @@
-from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 
 
 class PortfolioSourceType(str, Enum):
@@ -10,28 +9,14 @@ class PortfolioSourceType(str, Enum):
     PDF = "pdf"
 
 
-class PortfolioUploadRequest(BaseModel):
-    source_type: PortfolioSourceType
-    source_url: str | None = Field(
-        default=None, description="노션/블로그 URL (notion/blog인 경우 필수)"
-    )
-
-
 class PortfolioResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     user_id: int
-    source_type: str
-    source_url: str | None
-    original_filename: str | None
-    extracted_text: str
-    extraction_status: str
-    error_message: str | None
-    created_at: datetime
-    updated_at: datetime
+    source_type: PortfolioSourceType
+    source_url: str | None = None
+    filename: str | None = None
 
 
 class PortfolioListResponse(BaseModel):
-    portfolios: list[PortfolioResponse]
+    items: list[PortfolioResponse]
     total: int
