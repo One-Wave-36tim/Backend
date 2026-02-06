@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
 from app.db.session import get_db
 from app.schemas.user_settings import UserSettingsCreate, UserSettingsResponse
 from app.services.user_settings_service import save_notion_key
@@ -12,6 +13,6 @@ router = APIRouter(prefix="/users/settings", tags=["user-settings"])
 def upsert_notion_key(
     payload: UserSettingsCreate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user),
 ) -> UserSettingsResponse:
-    user_id = 1
     return save_notion_key(db=db, user_id=user_id, notion_api_key=payload.notion_api_key)
