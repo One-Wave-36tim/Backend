@@ -1,9 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.api import api_router
-from app.core.config import get_settings
+from app.router import router
 
-settings = get_settings()
-
-app = FastAPI(title=settings.app_name)
-app.include_router(api_router)
+app = FastAPI(title="Backend")
+app.include_router(router)

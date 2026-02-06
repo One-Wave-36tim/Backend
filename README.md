@@ -70,34 +70,36 @@ uv run pytest -q
 - **Service = 비즈니스 로직**
 - **Controller는 최대한 얇게(thin)**
 
-권장 트리(현재 적용된 형태랑 동일한 방향):
+권장 트리(현재 적용된 형태):
 
 ```text
 Backend/
   app/
-    main.py                  # FastAPI 앱 생성, API 라우터 등록
+    main.py                  # FastAPI 앱 생성
+    router.py                # 컨트롤러(router)들 한 곳에서 include
 
     core/
       errors.py              # 공통 에러/예외
       config.py              # (나중에) 환경변수/설정
 
-    api/
-      api.py                 # 전체 API router 묶는 곳(include_router)
+    controllers/             # "라우터" 대신 여기서 endpoint 정의(HTTP 레이어)
+      health_controller.py   # GET /health
+      auth_controller.py     # POST /auth/login ...
 
-      controllers/           # "라우터" 대신 여기서 endpoint 정의
-        health_controller.py # GET /health
-        users_controller.py  # (예시) /users ...
-
-      schemas/               # Pydantic request/response 모델
-        health.py
-        user.py
+    schemas/                 # Pydantic request/response 모델
+      health.py
+      auth.py
 
     services/                # 비즈니스 로직(유즈케이스)
       health_service.py
-      user_service.py
+      auth_service.py
 
-    repositories/            # (DB 붙일 때) 데이터 접근 계층
-      user_repo.py
+    db/                      # DB 붙일 때 확장할 영역
+      entities/              # ORM 엔티티(테이블 모델)
+        user.py
+      repositories/          # DB 접근 코드(쿼리/CRUD)
+        auth_repository.py
+      session.py             # DB 세션/DI(get_db)
 
   tests/
     test_health.py

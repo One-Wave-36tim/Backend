@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.api.schemas.auth import LoginResponse
-from app.repositories.auth_repository import find_user_by_credentials
+from app.db.repositories.auth_repository import find_user_by_credentials
+from app.schemas.auth import LoginResponse
 
 
 def login_with_id_pw(db: Session, user_id: str, password: str) -> LoginResponse:

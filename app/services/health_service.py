@@ -1,4 +1,4 @@
-from app.api.schemas.health import HealthResponse
+from app.schemas.health import HealthResponse
 
 
 def get_health() -> HealthResponse:
