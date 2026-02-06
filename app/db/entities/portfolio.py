@@ -11,12 +11,22 @@ from app.db.session import Base
 
 if TYPE_CHECKING:
     from app.db.entities.user import User
+    from app.db.entities.portfolio_analysis import PortfolioAnalysis
 
 
 class PortfolioSourceType(str, Enum):
     NOTION = "notion"
     BLOG = "blog"
     PDF = "pdf"
+
+    @classmethod
+    def _missing_(cls, value: object) -> "PortfolioSourceType | None":
+        if isinstance(value, str):
+            normalized = value.lower()
+            for member in cls:
+                if member.value == normalized or member.name.lower() == normalized:
+                    return member
+        return None
 
 
 class ExtractionStatus(str, Enum):
@@ -33,7 +43,12 @@ class Portfolio(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     source_type: Mapped[PortfolioSourceType] = mapped_column(
-        SAEnum(PortfolioSourceType, name="portfolio_source_type"), nullable=False
+        SAEnum(
+            PortfolioSourceType,
+            name="portfolio_source_type",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
+        nullable=False,
     )
     source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     original_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -50,3 +65,6 @@ class Portfolio(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="portfolios")
+    analyses: Mapped[list["PortfolioAnalysis"]] = relationship(
+        "PortfolioAnalysis", back_populates="portfolio", cascade="all, delete-orphan"
+    )
