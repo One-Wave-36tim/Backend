@@ -10,7 +10,7 @@ def replace_portfolio_analysis(
     db: Session,
     portfolio_id: int,
     analysis_text: str,
-    project_id: uuid.UUID | None,
+    project_id: uuid.UUID | None = None,
 ) -> PortfolioAnalysis:
     db.execute(delete(PortfolioAnalysis).where(PortfolioAnalysis.portfolio_id == portfolio_id))
     db.commit()
